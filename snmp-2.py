@@ -22,5 +22,3 @@ for i in argv[1:len(argv)]:
             print output.upper() + '\n'
         else:
             print output + '\n'
-
-
