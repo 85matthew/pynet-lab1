@@ -1,0 +1,90 @@
+#!/usr/bin/python
+#import pysnmp
+
+from snmp_helper import snmp_get_oid_v3,snmp_extract
+import pygal
+#import string
+
+
+####
+def graphData(packagedData, numRows):
+    
+    ifOutUcastPkts = []
+    ifOutOctets = []
+    ifInUcastPkts = []
+    ifInOctets = []
+    ifDescr = ""
+
+    for dataRow in packagedData:
+        print dataRow
+        ifOutUcastPkts.append(int(dataRow[0]))
+        ifOutOctets.append(int(dataRow[1]))
+        ifInUcastPkts.append(int(dataRow[2]))
+        ifInOctets.append(int(dataRow[3]))
+        if len(ifDescr) == 0:
+            ifDescr = dataRow[4]
+
+
+    print 
+    print "****"
+    print
+    print ifOutOctets
+    print ifInOctets
+
+
+    # Create a Chart of type Line
+    line_chart1 = pygal.Line()
+    line_chart2 = pygal.Line()
+
+    # Title
+    line_chart1.title = 'Input/Output Octets'
+    line_chart2.title = 'Input/Output Unicast Packets'
+
+    # X-axis labels (samples were every five minutes)
+    line_chart1.x_labels = ['5', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60']
+    line_chart2.x_labels = ['5', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55', '60']
+
+    # Add each one of the above lists into the graph as a line with corresponding title
+    line_chart1.add('InOctets', ifInOctets)
+    line_chart1.add('OutOctets',  ifOutOctets)
+    line_chart2.add('InUcastPkts', ifInUcastPkts)
+    line_chart2.add('OutUcastPkts', ifOutUcastPkts)
+
+    # Create an output image file from this
+    line_chart1.render_to_file('test1.svg')
+    line_chart2.render_to_file('test2.svg')
+
+
+
+#####
+def readFromFile():
+    
+    data_file = open('datafile.dat', "rb")
+
+    ifOutUcastPkts = []
+    ifOutOctets = []
+    ifInUcastPkts = []
+    ifInOctets = []
+    ifDescr = []
+    packagedData = []
+        
+    numRows = 0
+    for row in data_file:
+        values = row.split(",")
+        values[4] = values[4].rstrip()
+        #print values
+        #ifOutUcastPkts[numRows], ifOutOctets[numRows], ifInUcastPkts[numRows], ifInOctets[numRows],ifDescr[numRows] = row.split(",")
+        numRows = numRows + 1
+        packagedData.append(values)
+
+    data_file.close()
+    
+    #print packagedData
+    return packagedData, numRows
+
+packagedData = []
+numRows = 0
+
+packagedData, numRows = readFromFile()
+graphData(packagedData, numRows)
+
