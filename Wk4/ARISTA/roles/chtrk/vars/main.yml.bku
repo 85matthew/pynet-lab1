@@ -1,0 +1,4 @@
+---
+- vars:
+      eapi_username: eapi
+      eapi_password: 99saturday

@@ -1,0 +1,14 @@
+---
+- hosts: local
+  #vars:
+  # hostname: router
+  tasks:
+  - name: generate router config
+    template: src=~/python_hw/Wk3/exercise3/access_switch.j2
+                dest=~/python_hw/Wk3/exercise3/{{item.hostname}}.txt
+    with_items:
+      - {hostname: rtr1, ip_addr: 1.1.1.1, secret: p, access_vlan: 1 , default_gateway: 1.1.1.2 , SNMPv3: True, snmp_community: p }
+      - {hostname: rtr2, ip_addr: 2.1.1.1, secret: p, access_vlan: 1 , default_gateway: 2.1.1.2 , SNMPv3: True, snmp_community: p }
+      - {hostname: rtr3, ip_addr: 3.1.1.1, secret: p, access_vlan: 1 , default_gateway: 3.1.1.2 , SNMPv3: False, snmp_community: p }
+      - {hostname: rtr4, ip_addr: 4.1.1.1, secret: p, access_vlan: 1 , default_gateway: 4.1.1.2 , SNMPv3: False, snmp_community: p }
+      - {hostname: rtr5, ip_addr: 5.1.1.1, secret: p, access_vlan: 1 , default_gateway: 5.1.1.2 , SNMPv3: True, snmp_community: p }

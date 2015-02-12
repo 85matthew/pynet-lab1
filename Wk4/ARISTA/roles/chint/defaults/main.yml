@@ -1,0 +1,32 @@
+---
+
+# sets the default for eAPI connectivity.  More specific values should be
+# overwritten in the implmenting playbook
+eapi_hostname: 50.242.94.227
+eapi_username: eapi
+eapi_password: 99saturday
+eapi_protocol: https
+eapi_port: 8243
+#
+# # enables debug output from the eos_* roles
+# eos_debug: []
+#
+# # enables purge of resources in eos_* roles
+# eos_purge: []
+#
+# # configures the playbook to use the role supplied libraries instead
+# # of downloading them from PyPi.  Using this eliminates the need to
+# # allow the EOS switch to access the https://pypi.python.org/pypi
+eos_required_libs:
+    - eapilib-0.1.0.tar.gz
+#
+#     # configures the save configuration handler to run on every configuration
+#     # change.  if this setting is false, then the running config is never
+#     # saved to non-volatile memory
+#     eos_save_on_change: true
+#
+#     # configures the backup configuration handler to run on every configuration
+#     # change.  with this setting enable, the eos role will download the
+#     # startup-config to the Ansible control host and store it
+#     eos_backup_on_change: true
+#     eos_backup_dir: {{ ansible_hostname }}

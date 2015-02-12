@@ -1,0 +1,9 @@
+---
+
+- name: ansible_change_trk
+  hosts: arista
+  gather_facts: yes
+
+  roles:
+    - role: chtrk
+  

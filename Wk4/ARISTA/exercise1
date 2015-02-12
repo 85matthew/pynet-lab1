@@ -1,0 +1,9 @@
+---
+
+- name: ansible_add_vlans
+  hosts: arista
+  gather_facts: yes
+
+  roles:
+    - role: vlans
+  
