@@ -1,0 +1,249 @@
+#!/usr/bin/env python
+
+from jsonrpclib import Server
+import sys
+import time
+import argparse
+from pprint import pprint
+import pyeapi
+import json
+
+
+######
+#   returns error=True/False & Output[key:value]
+###   
+def run_cmd(router, vlan_id, vlan_name, cmds, mode):
+
+    build_class = "device.{}(cmds)".format(mode)
+    print build_class
+    print "======="
+
+    try:
+        device = pyeapi.connect_to('router')
+        print "successful connection made"
+    except:
+        print "Couldn't connect to device"
+        return True, None
+    print "About to try commands {}".format(cmds)
+
+    try:
+        print "trying fixed dict"
+        results = device.config(cmds)
+        print type(results)
+        pprint(results)
+        #fixed_dict = results[0]
+        #print type(fixed_dict)
+
+        #print fixed_dict.keys()
+        #pprint(fixed_dict)
+        print "VLAN is {}".format(vlan_id)
+        #print fixed_dict['result']['vlans'][str(vlan_id)]['name']
+        #print "VALUE===== {}".format(fixed_dict)
+        #print fixed_dict.keys()
+        #pprint(results)
+        print "finished Try"
+
+    except:
+        print "VLAN does not exist in switch!"
+        print sys.exc_info()[0]
+    
+
+#######
+#  Builds URL String
+def build_URL(ip_address, username, password):
+    URL = "https://{}:{}@{}:8243/command-api".format(username, password, ip_address)
+    return URL    
+
+######
+# Calls API for connection to server, issues commands, returns the data
+def json_Call(URL):
+    conn = Server(URL)
+    print conn
+    data = conn.runCmds( 1, ["show interfaces"] )
+    return data
+
+######
+# Runs show command
+def show_cmd(router, vlan_id):
+    
+    vlan_name = None
+    cmds = "show vlan {}".format(vlan_id)
+    mode = "enable"
+    run_cmd(router, vlan_id, vlan_name, cmds, mode)
+    return exists, existing_vlan_name 
+
+'''
+    try:
+        device = pyeapi.connect_to('router')
+        print "successful connection made"
+    except:
+        print "Couldn't connect to device"
+        return False, None
+    cmd = "show vlan {}".format(vlan_id)
+    print "About to try command {}".format(cmd)
+    try:
+        print "trying fixed dict"
+        results = device.enable([cmd])
+        print type(results)
+        fixed_dict = results[0]
+        print type(fixed_dict)
+
+        print fixed_dict.keys()
+        pprint(fixed_dict)
+        print "VLAN is {}".format(vlan_id)
+        print fixed_dict['result']['vlans'][str(vlan_id)]['name']
+        print "VALUE===== {}".format(fixed_dict)
+        #print fixed_dict.keys()
+        #pprint(results)
+        print "finished Try"
+
+    except:
+        print "VLAN does not exist in switch!"
+        return False, None
+    print "WTF"
+    #print results
+    #print type(results)
+    try:
+        vlan_name = get_vlan_name(fixed_dict, vlan_id)
+        print "vlan_name made it HEREREEEEEE"
+        return True, vlan_name
+    except:
+        print "something broke"
+        print sys.exc_info()[0] 
+'''
+
+#####
+# Grabs VLAN name from data returned
+def get_vlan_name(fixed_dict, vlan_id):
+    print "*******"
+    #pprint(results)
+    print "-------------"
+    print "-------------"
+    print "-------------"
+    #pprint(results)
+    pprint(fixed_dict)
+    print fixed_dict['result']['vlans'][str(vlan_id)]['name']
+    return fixed_dict['result']['vlans'][str(vlan_id)]['name']
+
+#####
+# adds a VLAN
+def add_vlan(vlan_id, vlan_name):
+
+    cmds = [ "vlan {}".format(vlan_id) ,  "name {}".format(vlan_name) ]
+    mode = "config"
+
+    run_cmd(router, vlan_id, vlan_name, cmds, mode)
+
+'''
+    try:
+        device = pyeapi.connect_to('router')
+        print "successful connection made"
+    except:
+        print "Couldn't connect to device"
+        return True
+    print "About to try commands {}".format(cmds)
+
+    try:
+        print "trying fixed dict"
+        results = device.config(cmds)
+        print type(results)
+        pprint(results)
+        #fixed_dict = results[0]
+        #print type(fixed_dict)
+
+        #print fixed_dict.keys()
+        #pprint(fixed_dict)
+        print "VLAN is {}".format(vlan_id)
+        #print fixed_dict['result']['vlans'][str(vlan_id)]['name']
+        #print "VALUE===== {}".format(fixed_dict)
+        #print fixed_dict.keys()
+        #pprint(results)
+        print "finished Try"
+
+    except:
+        print "VLAN does not exist in switch!"
+        print sys.exc_info()[0] 
+    return
+'''
+
+####
+# removes a VLAN
+def rem_vlan():
+    return
+
+####
+# Parses Arguments from command line call
+def arg_parse(args):
+    vlan_name = ""
+    addVlan= False
+    remVlan = False
+
+
+    parser = argparse.ArgumentParser(
+        description="Idempotent addition/removal of VLAN to Arista switch"
+    )
+    parser.add_argument("vlan_id", help="VLAN number to create or remove", action="store", type=int)
+    parser.add_argument(
+        "--name",
+        help="Specify VLAN name",
+        action="store",
+        dest="vlan_name",
+        type=str
+    )
+    parser.add_argument("--remove", help="Remove the given VLAN ID", action="store_true")
+
+    args = parser.parse_args()
+    remove = args.remove
+    vlan_name = args.vlan_name 
+
+    print "pre if check \n\n"
+    print args.vlan_name
+    print args.remove
+    print "******"
+    print vlan_name
+    print remove
+    if remove == True and vlan_name != None:
+        parser.error("add and remove tags are mutually exclusive")
+
+    return args
+
+
+
+######
+def main(args):
+
+    ip_address = "50.242.94.227"
+    port = "8243"
+    username = "eapi"
+    password = "99saturday"
+
+    args = arg_parse(args)
+
+    router = { "host":ip_address, "port":port, "username":username, "password":password, "enablepwd":"" }
+
+    exists, existing_vlan_name = show_cmd(router, args.vlan_id)
+    print args.vlan_name
+    print "&&&"
+    if args.remove and exists == True:
+        print "do remove stuff here"
+    elif args.remove and exists != True:
+        print "VLAN does not exist. Unable to delete"
+    elif args.vlan_name == existing_vlan_name:
+        print "VLAN already configured with this name"
+    elif args.vlan_name and exists == True:
+        print "VLAN already exists."
+    else:
+        add_vlan(args.vlan_id, args.vlan_name)
+        print "do add stuff here"
+         
+    print ""
+    print "done"
+    print exists
+    #URL = build_URL(ip_address, username, password)
+    #parse_args(args)
+    #data = json_Call(URL)
+    #pprint(data)
+
+
+if __name__ == "__main__":
+    main(sys.argv)

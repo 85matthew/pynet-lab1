@@ -1,0 +1,71 @@
+#!/usr/bin/python
+
+from jsonrpclib import Server
+import sys
+import time
+#from pprint import pprint
+
+
+#######
+#  Builds URL String
+def build_URL(ip_address, username, password):
+    URL = "https://{}:{}@{}:8243/command-api".format(username, password, ip_address)
+    return URL    
+
+######
+# Calls API for connection to server, issues commands, returns the data
+def json_Call(URL):
+    conn = Server(URL)
+    print conn
+    data = conn.runCmds( 1, ["show interfaces"] )
+    return data
+
+
+#######
+# Parses data from JSON call. Prints interface Name, inOctets, and outOctets for each relevant interface
+def parse_json(data, inOctets, outOctects):
+    data = data[0]
+    temp = data["interfaces"]
+    print "**************"
+    length = len(temp)
+    for interface in temp:
+        intName = interface
+        intData = temp[interface]
+        if intName == "Management1" or intName == "Vlan1":
+            continue
+        if intData["interfaceCounters"]:
+            pass
+        else:
+            continue
+        intData = intData["interfaceCounters"]
+        #if intName== "Management1":
+        #    continue
+        print intName
+        print " inOctets: {}".format(intData["inOctets"])
+        print " outOctets: {}".format(intData["outOctets"])
+        time.sleep(3)
+        #print temp[interface]
+        #temp = temp["inOctets"]
+        #print "inOctets:{}".format(temp)
+        #print "outOctets:{}".format(temp)
+
+    return
+
+######
+def main(args):
+    URL = ""
+    ip_address = "50.242.94.227"
+    port = "8243"
+    username = "eapi"
+    password = "99saturday"
+    conn=""
+    data = ""
+
+    URL = build_URL(ip_address, username, password)
+    data = json_Call(URL)
+    parse_json(data, "inOctets", "outOctects")
+
+
+
+if __name__ == "__main__":
+    main(sys.argv)
