@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+
+import onepk_helper
+import sys
+from onep.element.NetworkApplication import NetworkApplication
+from onep.element import SessionConfig
+
+
+
+##########
+#
+#
+def main(args):
+
+    rtr1_dict = dict(
+        ip = "50.242.94.227",
+        username = "pyclass",
+        password = "88newclass",
+        pin_file = "pynet-rtr1-pin.txt",
+        port = 15002
+    )
+
+    rtr1_obj = onepk_helper.NetworkDevice(**rtr1_dict)
+
+    rtr1_obj.establish_session()
+
+    print "product id-{}".format(rtr1_obj.net_element.properties.product_id)
+    print "Serial Number-{}".format(rtr1_obj.net_element.properties.SerialNo)
+
+    rtr1_obj.disconnect()
+
+
+
+if __name__ == "__main__":
+    main(sys.argv)
+

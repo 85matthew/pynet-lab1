@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+import onepk_helper
+import sys
+from onep.element.NetworkApplication import NetworkApplication
+from onep.element import SessionConfig
+from onep.interfaces import InterfaceFilter
+from onep.interfaces import NetworkInterface
+
+'''
+Note that RTR1 and RTR2 are the same router. Hostname output will be the same
+'''
+
+
+
+##########
+#
+#
+def main(args):
+
+    rtr1_dict = dict(
+        ip = "50.242.94.227",
+        username = "pyclass",
+        password = "88newclass",
+        pin_file = "pynet-rtr1-pin.txt",
+        port = 15002
+    )
+
+    rtr2_dict = dict(
+        ip = "50.242.94.227",
+        username = "pyclass",
+        password = "88newclass",
+        pin_file = "pynet-rtr2-pin.txt",
+        port = 8002
+    )
+
+
+    rtr1_obj = onepk_helper.NetworkDevice(**rtr1_dict)
+    rtr2_obj = onepk_helper.NetworkDevice(**rtr2_dict)
+
+    rtr1_obj.establish_session()
+    rtr2_obj.establish_session()
+
+    InterfaceTypes = NetworkInterface.InterfaceTypes
+    Interface = NetworkInterface(None, "FastEthernet4", None, None)
+
+    filter = InterfaceFilter(None, InterfaceTypes.ONEP_IF_TYPE_ETHERNET)
+
+    results = rtr1_obj.net_element.get_interface_list(filter)
+    results2 = rtr2_obj.net_element.get_interface_list(filter)
+
+
+    for eachInt in results:
+        
+        if eachInt.name == "FastEthernet4":
+            rtr_name = rtr1_obj.net_element.properties.sys_name
+            int_stats = eachInt.get_statistics()
+            print "{}: {}".format(rtr_name, eachInt.name)
+            print int_stats
+    
+    for eachInt in results2:
+        
+        if eachInt.name == "FastEthernet4":
+            rtr_name = rtr2_obj.net_element.properties.sys_name
+            int_stats = eachInt.get_statistics()
+            print "{}: {}".format(rtr_name, eachInt.name)
+            print int_stats
+
+    rtr1_obj.disconnect()
+    rtr2_obj.disconnect()
+
+
+
+if __name__ == "__main__":
+    main(sys.argv)
+

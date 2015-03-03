@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+import sys
+from onepk_helper import NetworkDevice
+from onep.element.NetworkApplication import NetworkApplication
+from onep.element import SessionConfig
+from onep.interfaces import InterfaceFilter
+from onep.interfaces import NetworkInterface
+from onep.vty import VtyService
+
+'''
+Note that RTR1 and RTR2 are the same router. Hostname output will be the same
+'''
+
+
+
+##########
+#
+#
+def main(args):
+
+    rtr1_dict = dict(
+        ip = "50.242.94.227",
+        username = "pyclass",
+        password = "88newclass",
+        pin_file = "pynet-rtr1-pin.txt",
+        port = 15002
+    )
+
+    rtr1_obj = NetworkDevice(**rtr1_dict)
+    rtr1_obj.establish_session()
+
+
+    vty_service = VtyService(rtr1_obj.net_element)
+    vty_service.open()
+
+    CMD = "term length 0"
+
+    cli = vty_service.write(CMD)
+
+    CMD = "show version"
+
+    cli = vty_service.write(CMD)
+
+    print cli
+
+    rtr1_obj.disconnect()
+
+
+if __name__ == "__main__":
+    main(sys.argv)
+

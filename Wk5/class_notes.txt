@@ -1,0 +1,107 @@
+class 5 challenge solution
+  Jon 1 day ago 
+This was kind of fun. I learned that ansible-playbook -v is the only way to see the messages you create versus ansible standard messaging though. I'm pretty sure I didn't catch half the possible error cases (i.e. I probably didn't convert most possible exceptions to json error messages), but it seems to do the job when you don't specify crazy values or the switch isn't down. Ansible documentation on the other hand is not ideal.. it's almost like they want to be as concise as possible. Almost the only thing useful they had to say was to look through other actual ansible modules to really understand how to write modules, which was how I was able to get started.
+
+https://gist.github.com/jrmitche/ed3425885934f1092388
+
+  Kirk Byers about 11 hours ago 
+@jon Yes, I agree on this part of the Ansible documentation; it is poor. I wrote this a few days ago to try to help with this:
+
+https://pynet.groupbuzz.io/topics/7041-creating-an-ansible-module-some-assi...tance
+
+In general, the Ansible documentation is very good, but this section of the documentation is not good.
+
+  Kirk Byers about 11 hours ago 
+@jon I would look to break some of your main() code into functions. Using functions, you could share code between exercise #2 and exercise #3.
+
+  Ashwin about 10 hours ago 
+hi folks,
+
+I tried the challenge question and found the going rather tough. I then looked at Arista's eos_vlan module and used some inputs from there as well.
+
+https://github.com/ashfsk/AppliedPython/commit/2d713641849b24d807b348ad798b...511ef
+https://github.com/ashfsk/AppliedPython/commit/56b35ff6ba6fc6eff64c79afeb1f...8a365
+
+I have a few questions on modules:
+1. Why is a module.exit_json necessary in a module? What does it do?
+2. Why a module does not allow print statement?
+3. As part of module.exit_json, we pass created- "True/False", changed="True/False". What are these for?
+4. Im not clear on a section of the code in eos_vlan module.
+
+EAPI_KWARG_MAP={
+'eapi_hostname': 'hostname',
+'eapi_password': 'password',
+'eapi_username': 'username',
+'eapi_port': 'port',
+'eapi_protocol': 'protocol'
+
+}
+
+module = AnsibleModule(
+argument_spec = dict(
+name=dict(required=True, type='str'),
+vlanid=dict(required=False, type='str'),
+vni=dict(type='int'),
+state=dict(default='configured', type='str',
+choices=['configured', 'unconfigured', 'default']),
+null_as_default=dict(type='bool', default=False, choices=BOOLEANS),
+eapi_hostname=dict(default='localhost'),
+eapi_username=dict(default='admin'),
+eapi_password=dict(default=''),
+eapi_protocol=dict(default='https'),
+eapi_port=dict(default=None)
+),
+supports_check_mode=True
+)
+
+kwargs = dict()
+for key, value in module.params.items():
+if value and key in EAPI_KWARG_MAP:
+kwargs[EAPI_KWARG_MAP[key]] = value
+
+Above, what I understand is for key, value in module.params.items()=name, eapi_hostname, eapi_port etc.
+Within the items we look if the key is present in EAPI_KWARG_MAP as well. I understand that we check for the key but why do we check for the value as well?
+
+if value and key in EAPI_KWARG_MAP:
+
+As I see the value in EAPI_KWARG_MAP and module.params.items() are different.
+
+Rgds
+Ashwin.
+
+  Jon about 3 hours ago 
+@Kirk Byers
+
+OK - this time I followed through, here is a fast refactor:
+https://gist.github.com/jrmitche/628d455002fe3246c255
+
+  Jon about 3 hours ago 
+@Ashwin
+
+Here are some quick thoughts on your questions:
+
+Q1-3:
+module.exit_json() is a function that properly stores the successful exit status of your module, relaying whether or not it changed anything (or the result was not a change) and any ancillary troubleshooting information such as a message about what was changed that can be displayed if ansible-playbook is in a more verbose mode. The reason you can't print and the reason for this function are entertwined. So that ansible can provide only the amount of information on a particular task that a user has specified, it expects all modules to return their status via JSON and not deliver any direct input/output to a user who is only expecting to see the normalized output from the ansible-playbook run. ansible may have other ways to call these modules where no user is involved whatsoever. So all of this data can be logged in uniform and programmatically (not human friendly) way it makes sense to not assume a terminal is attached from where standard output could be sent (like via a normal print statement). changed is a required argument to this function as ansible relays a summary as to whether or not a playbook resulted in a change or not and it's not magic, it gets this information from this returned value from the various modules listed in the playbook.
+
+Q4:
+This structure is a simple python dict with a key value pair that basically translates the eos ansible type naming for various parameters to the eapilib expected naming for those same parameters. The last 3 lines you posted are just a fancy way to translate the names expected by this ansible module you wrote to the actual parameter names that are expected by eapilib create_connection function by doing a lookup of the key of the provided parameter and replaying it with a new key of it's value while maintaining the actual value of the parameter that was passed into the module.
+
+  Ashwin about 1 hour ago 
+@Jon Thanks for your response.
+
+As I understand, json exit module is the only way to return the status of a module.
+
+"changed is a required argument to this function as ansible relays a summary as to whether or not a playbook resulted in a change or not and it's not magic, it gets this information from this returned value from the various modules listed in the playbook."
+
+As someone who develops the module, it is his/her responsibility to return "changed" value isnt it? Or is ansible intelligent enough to detect the change status and return it accordingly?
+
+By default, it appears that changed=False. When I make change=True in the module only then True is returned as part of json exit module.
+
+Q4: I understand the need for this but I still fail to understand why presence of key and value in EAPI_KWARG_MAP is checked. I tried with only key and it still works.
+
+for key, value in module.params.items():
+if key in EAPI_KWARG_MAP: ######################
+kwargs[EAPI_KWARG_MAP[key]] = value
+
+Rgds
+Ashwin.
